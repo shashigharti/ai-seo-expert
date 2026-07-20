@@ -1,6 +1,7 @@
 import type { WorkflowEvent } from "../features/agentExecution/types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+// See apiClient.ts for why this falls back differently in dev vs production.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? "http://localhost:8000" : "");
 
 /**
  * A sibling to apiClient.ts, not an extension of it - getRequest/postRequest
