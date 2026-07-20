@@ -1,6 +1,6 @@
 # AISeo Expert
 
-AISeo Expert is an AI-powered SEO analysis and automated-fixing platform. Point it at a GitHub repository and it audits the site's source for SEO issues - crawlability problems, missing metadata, thin or poorly structured content, accessibility gaps, and performance bottlenecks - then, for the issues you approve, opens a pull request on that same repository with the fix already written.
+AISeo Expert is an AI SEO agent that searches a GitHub repository's source and identifies the SEO issues affecting the website it builds - crawlability problems, missing metadata, thin or poorly structured content, accessibility gaps, and performance bottlenecks. For every issue it finds, it suggests a fix; for the ones you approve, it generates a pull request on that same repository with the fix already written.
 
 Every finding comes with the evidence behind it, a plain-language explanation of why it matters, a recommended fix, and links to authoritative references (Google Search Central, W3C, MDN, schema.org, OWASP). Nothing is a black box: token usage, model choice, and estimated cost are shown live as each agent runs, and any agent's reasoning trace can be expanded to see exactly how it reached its conclusion.
 
