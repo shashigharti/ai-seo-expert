@@ -1,4 +1,9 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+// In production the backend serves the built frontend from the same origin
+// (docs/frontend-architecture.md §2), so requests should be relative. Dev
+// mode runs Vite on :5173 with the backend separate on :8000 and no proxy
+// configured, so it needs the absolute fallback; import.meta.env.DEV is
+// Vite's built-in flag for that distinction.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? "http://localhost:8000" : "");
 
 export interface ApiErrorBody {
   error: {
