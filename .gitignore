@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# Env
+.env
+.env.local
+
+# Data
+backend/data/
+
+# Dev script logs
+.dev-logs/
+
+# Docs & agent config
+docs/
+.claude/
+.agents/
+CLAUDE.md
+AGENTS.md
+
+# Editors/OS
+.DS_Store

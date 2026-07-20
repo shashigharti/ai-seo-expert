@@ -1,0 +1,59 @@
+# Production-shaped compose file for a single free-tier Alibaba Cloud ECS
+# instance - self-hosted Postgres (no ApsaraDB RDS), no ACK/SLB/KMS. See
+# docs/deployment.md "Alibaba Cloud Free Tier Deployment" for the full
+# runbook. Standalone (not layered on docker-compose.yml, which stays the
+# local-dev file) so there's no ambiguity from Compose's file-merge rules
+# about which fields actually get overridden.
+#
+# Run with: docker compose -f docker-compose.prod.yml up -d --build
+# Requires a real .env (see .env.production.example) in the same directory.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aiseo
+      POSTGRES_USER: aiseo
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aiseo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    # Deliberately no `ports:` - reachable only from `backend` over the
+    # compose network. Unlike docker-compose.yml's local-dev use, this
+    # file runs on a real cloud VM whose "host" IS a public IP, so
+    # publishing 5432 here would expose Postgres directly to the internet.
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      # Derived from POSTGRES_PASSWORD rather than read from .env's own
+      # DATABASE_URL - a dev-oriented DATABASE_URL (host `localhost`)
+      # wouldn't resolve inside the compose network anyway (needs host
+      # `postgres`), so this is computed here instead of asking the user
+      # to keep two values in sync.
+      DATABASE_URL: "postgresql+asyncpg://aiseo:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}@postgres:5432/aiseo"
+      SECRET_KEY: "${SECRET_KEY:?SECRET_KEY must be set in .env, e.g. via openssl rand -hex 32}"
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persists ARTIFACT_STORE_BACKEND=local's data/artifacts directory
+      # across container recreation (`docker compose up -d --build` on
+      # every redeploy) - without this, generated reports/patches/logs
+      # would be silently wiped on each redeploy.
+      - artifacts:/app/data/artifacts
+
+volumes:
+  pgdata:
+  artifacts:

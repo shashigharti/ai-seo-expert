@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: aiseo
+      POSTGRES_USER: aiseo
+      POSTGRES_PASSWORD: aiseo
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aiseo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Reads SECRET_KEY/QWEN_API_KEY/GITHUB_TOKEN/etc. from the same
+    # backend/.env used when running uvicorn directly - one real source of
+    # truth for local dev, not a second root-level .env Compose would
+    # otherwise look for on its own (Compose's ${VAR} substitution only
+    # checks a .env next to this file, which doesn't exist).
+    env_file: backend/.env
+    environment:
+      # Overrides env_file's dev-oriented values, which point at
+      # localhost/host-network addresses that don't resolve inside the
+      # compose network.
+      DATABASE_URL: postgresql+asyncpg://aiseo:aiseo@postgres:5432/aiseo
+      ALLOWED_ORIGINS: '["http://localhost:8000"]'
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:

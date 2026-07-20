@@ -1,0 +1,113 @@
+# Central agent registry and model policy configuration.
+# docs/agent-architecture.md §5 (Agent Registry) and §6 (Model Selection).
+#
+# Use actual Qwen Cloud model identifiers available in the deployment
+# environment. `tools:` names are resolved against the tools_registry passed
+# to AgentFactory (app/tools/) - currently only github_file_reader exists;
+# unresolved names are silently skipped by the factory (no fake tool stubs
+# are registered just to satisfy a name).
+#
+# `skill:` points at a SKILL.md under app/skills/<name>/ - same structure as
+# this project's own .agents/skills/<name>/SKILL.md (YAML frontmatter with
+# name + description, then the instructions body). The factory strips the
+# frontmatter before using the body as the agent's system prompt.
+
+model_policies:
+  # qwen-plus for basic (non-reasoning) tasks, qwen-max for anything that
+  # reasons (thinking: true) - the split follows `thinking` directly, since
+  # that's exactly the "basic extraction vs. real reasoning" distinction.
+  economical:
+    model: qwen-plus
+    thinking: false
+
+  balanced:
+    model: qwen-max
+    thinking: true
+
+  advanced:
+    model: qwen-max
+    thinking: true
+
+agents:
+  seo_manager:
+    class: SEOManagerAgent
+    capability: seo_manager
+    model_policy: advanced
+    skill: skills/seo_manager/SKILL.md
+    tools: []
+
+  technical_seo:
+    class: TechnicalSEOAgent
+    capability: technical_seo
+    model_policy: balanced
+    skill: skills/technical_seo/SKILL.md
+    tools:
+      - github_file_reader
+
+  metadata:
+    class: MetadataAgent
+    capability: metadata
+    model_policy: economical
+    skill: skills/metadata/SKILL.md
+    tools:
+      - github_file_reader
+
+  content_seo:
+    class: ContentSEOAgent
+    capability: content_seo
+    model_policy: balanced
+    skill: skills/content_seo/SKILL.md
+    tools:
+      - github_file_reader
+
+  accessibility:
+    class: AccessibilityAgent
+    capability: accessibility
+    model_policy: balanced
+    skill: skills/accessibility/SKILL.md
+    tools:
+      - github_file_reader
+
+  performance:
+    class: PerformanceAgent
+    capability: performance
+    model_policy: economical
+    skill: skills/performance/SKILL.md
+    tools:
+      - github_file_reader
+
+  technical_seo_reviewer:
+    class: ReviewerAgent
+    capability: technical_seo_reviewer
+    model_policy: economical
+    skill: skills/technical_seo_reviewer/SKILL.md
+    tools: []
+
+  content_reviewer:
+    class: ReviewerAgent
+    capability: content_reviewer
+    model_policy: economical
+    skill: skills/content_reviewer/SKILL.md
+    tools: []
+
+  general_seo_reviewer:
+    class: ReviewerAgent
+    capability: general_seo_reviewer
+    model_policy: economical
+    skill: skills/general_seo_reviewer/SKILL.md
+    tools: []
+
+  fix_manager:
+    class: FixManagerAgent
+    capability: fix_manager
+    model_policy: economical
+    skill: skills/fix_manager/SKILL.md
+    tools: []
+
+  fix_worker:
+    class: FixWorkerAgent
+    capability: fix_worker
+    model_policy: balanced
+    skill: skills/fix_worker/SKILL.md
+    tools:
+      - github_file_reader

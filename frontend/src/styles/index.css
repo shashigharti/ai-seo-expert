@@ -1,0 +1,606 @@
+/* Design tokens - overrides Bootstrap 5's own CSS variables so every
+   component (cards, badges, buttons, accordion, focus rings) picks up the
+   refined palette automatically. Loaded after bootstrap.min.css in
+   main.tsx, so these win on equal selector specificity.
+   docs/specs.md "Visual Design": clean light theme, soft blue accent,
+   whitespace, rounded cards, subtle shadows, Bootstrap-compatible. */
+:root {
+  --bs-primary: #2954d6;
+  --bs-primary-rgb: 41, 84, 214;
+  --bs-primary-text-emphasis: #1a3a91;
+  --bs-primary-bg-subtle: #eaf0fe;
+  --bs-primary-border-subtle: #c3d6fb;
+
+  --bs-link-color: #2954d6;
+  --bs-link-color-rgb: 41, 84, 214;
+  --bs-link-hover-color: #1a3a91;
+  --bs-link-hover-color-rgb: 26, 58, 145;
+
+  --bs-border-color: #e4e7ec;
+  --bs-border-color-translucent: rgba(15, 23, 42, 0.08);
+  --bs-border-radius: 0.625rem;
+  --bs-border-radius-sm: 0.5rem;
+  --bs-border-radius-lg: 0.875rem;
+  --bs-border-radius-xl: 1.25rem;
+
+  --bs-box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --bs-box-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 10px rgba(15, 23, 42, 0.06);
+  --bs-box-shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.14);
+
+  --bs-focus-ring-color: rgba(41, 84, 214, 0.3);
+
+  /* Typography system - the single source of truth for every font size,
+     weight, and line-height in the app (docs' "standard typography
+     system"). Two scales, both explicit rather than left to Bootstrap's
+     defaults or ad hoc per-component values:
+
+     - Body scale (xs -> xl): running text, labels, badges, meta text -
+       anything that isn't a heading. Every component below (badges,
+       .meta-label/.meta-value, composer/action-bar selects, the Findings
+       total figure, etc.) draws from these five steps.
+     - Heading scale (heading-1 -> heading-6): matches the sizes Bootstrap's
+       own h1-h6/.h1-.h6 already used (2.5rem down to 1rem) - declared here
+       explicitly, as tokens, rather than left as an implicit Bootstrap
+       default, so heading and body sizes both live in one place and either
+       scale can be retuned without touching component code. Only h3(.h3,
+       page titles) / h5(.h5, card section headers) / h6(.h6, card
+       sub-headers) are actually used anywhere in the app today - see the
+       h1-h6 rule below - but all six are defined for completeness. Flat
+       rem values rather than Bootstrap's default fluid (RFS/`calc(...+vw)`)
+       sizing, matching the flat-rem approach the body scale already uses. */
+  --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.375rem;
+  --font-size-heading-1: 2.5rem;
+  --font-size-heading-2: 2rem;
+  --font-size-heading-3: 1.75rem;
+  --font-size-heading-4: 1.5rem;
+  --font-size-heading-5: 1.25rem;
+  --font-size-heading-6: 1rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+}
+
+body {
+  background-color: #f7f8fb;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+}
+
+/* Bootstrap's own "small text" utility (0.875em, relative to its parent)
+   - unified with the body scale's --font-size-sm (an absolute rem value)
+   so ".small"/"<small>" and any component that reads --font-size-sm
+   directly always agree, instead of two independently-defined numbers
+   that only coincidentally matched. */
+.small, small {
+  font-size: var(--font-size-sm);
+}
+
+/* Reserve the vertical scrollbar's width unconditionally - About's several
+   stacked cards are routinely taller than the viewport while Dashboard's
+   landing state often isn't, so without this the scrollbar appears on one
+   route and not the other, shifting the navbar's centered .container (and
+   the logo inside it) sideways by the scrollbar's width when navigating
+   between them. `scrollbar-gutter` reserves the space without forcing a
+   visible-but-unused scrollbar in browsers that support it; `overflow-y:
+   scroll` is the fallback for ones that don't - still fixes the shift,
+   just always shows the scrollbar. */
+html {
+  overflow-y: scroll;
+}
+
+@supports (scrollbar-gutter: stable) {
+  html {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.011em;
+}
+
+/* Paired with the type/class selector (".h3, h3", not just "h3") so this
+   wins over Bootstrap's own same-shaped rules regardless of which one a
+   component actually used - e.g. PageHeader's `<h1 className="h3">` picks
+   up the class selector's specificity either way, matching how the app
+   already relies on class overriding element for heading levels. */
+.h1, h1 { font-size: var(--font-size-heading-1); }
+.h2, h2 { font-size: var(--font-size-heading-2); }
+.h3, h3 { font-size: var(--font-size-heading-3); }
+.h4, h4 { font-size: var(--font-size-heading-4); }
+.h5, h5 { font-size: var(--font-size-heading-5); }
+.h6, h6 { font-size: var(--font-size-heading-6); }
+
+/* FindingCard's accordion item wraps its row in an <h4> purely because
+   Bootstrap's accordion pattern requires a heading element there for
+   accessibility (nested one level under FindingsPanel's per-agent <h3>
+   group heading) - it was never meant to be a visual heading itself (it
+   holds a checkbox, the finding's title button, and severity/status
+   badges). Left alone, the h4 rule above would hand it a 1.5rem heading
+   font-size, which .form-check-input's checkbox (sized in `em`, not `rem`)
+   would inherit - a real, visible mismatch within the same row. All three
+   rules below pin the accordion (header row, button/title text, and the
+   expanded body's description/evidence/recommendation/references) to the
+   same 14px (--font-size-sm) - the size used throughout the rest of the
+   page's list/meta content - instead of a mix of heading and body-base
+   sizes. `.accordion-header`, being a class selector, outranks the plain
+   `h4` element rule above regardless of source order; `.accordion-button`
+   is equal specificity to Bootstrap's own same-named rule, so it wins by
+   coming later in the cascade (this file loads after bootstrap.min.css). */
+.accordion-header,
+.accordion-button,
+.accordion-body {
+  font-size: var(--font-size-sm);
+}
+
+/* FindingCard's selected state - colors the whole item (header row +
+   expanded body), not just the checkbox, so a selected finding reads as
+   one highlighted unit in the list. Overriding --bs-accordion-bg (rather
+   than a plain background-color on .accordion-item) is what makes this
+   one declaration reach everywhere: .accordion-item's own background,
+   .accordion-button's (via --bs-accordion-btn-bg: var(--bs-accordion-bg)),
+   and .accordion-body (which has no background of its own, so it shows
+   the item's through) all read the same variable. --bs-primary-bg-subtle
+   is the same soft-blue tint Bootstrap's own accordion already uses for
+   an *expanded* button (--bs-accordion-active-bg), so a selected+expanded
+   item doesn't visually conflict with itself. */
+.accordion-item.is-selected {
+  --bs-accordion-bg: var(--bs-primary-bg-subtle);
+}
+
+/* Small top offset for the sticky Agent Execution Panel (DashboardPage) -
+   Bootstrap's own .sticky-top defaults to top: 0, which sits it flush
+   against the viewport edge with no breathing room. */
+.sticky-offset-top {
+  top: 1rem;
+}
+
+/* --- The handful of Bootstrap rules below don't read the --bs-primary
+   variable (they're compiled with the literal hex baked in), so retinting
+   the palette above needs these explicit companions too. --- */
+
+.btn {
+  font-weight: var(--font-weight-medium);
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: #1a3a91;
+  --bs-btn-hover-border-color: #1a3a91;
+  --bs-btn-active-bg: #16317d;
+  --bs-btn-active-border-color: #16317d;
+  --bs-btn-disabled-bg: var(--bs-primary);
+  --bs-btn-disabled-border-color: var(--bs-primary);
+  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+  --bs-btn-active-bg: var(--bs-primary);
+  --bs-btn-active-border-color: var(--bs-primary);
+  --bs-btn-disabled-color: var(--bs-primary);
+  --bs-btn-disabled-border-color: var(--bs-primary);
+  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--bs-primary-border-subtle);
+  box-shadow: 0 0 0 0.25rem var(--bs-focus-ring-color);
+}
+
+.form-check-input:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.form-check-input:focus {
+  border-color: var(--bs-primary-border-subtle);
+  box-shadow: 0 0 0 0.25rem var(--bs-focus-ring-color);
+}
+
+.accordion {
+  --bs-accordion-btn-focus-box-shadow: 0 0 0 0.25rem var(--bs-focus-ring-color);
+}
+
+.accordion-button:not(.collapsed) {
+  box-shadow: inset 0 -1px 0 var(--bs-border-color);
+}
+
+/* An explicit, absolute size - Bootstrap's own .badge defaults to a
+   relative 0.75em, so the same badge renders at a different physical size
+   depending on which element's font-size it happens to inherit (a severity
+   badge in an accordion header vs. a count badge inside a small heading
+   vs. one sitting in a plain paragraph). Fixing it to a token makes every
+   badge in the app the same size regardless of context. */
+.badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.01em;
+}
+
+/* Refined light navbar (AppLayout) replacing the old bg-dark bar - see
+   docs/specs.md's light-theme direction. */
+.navbar {
+  --bs-navbar-color: #495057;
+  --bs-navbar-hover-color: #16317d;
+  --bs-navbar-active-color: var(--bs-primary);
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--bs-border-radius-sm);
+  background-color: var(--bs-primary);
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.navbar .nav-link {
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.navbar .nav-link.active {
+  color: var(--bs-primary);
+  border-bottom-color: var(--bs-primary);
+}
+
+/* Live-connection pulse on the Agent Execution Panel's status badge -
+   deliberate, high-signal motion (docs/specs.md), not decorative. */
+.live-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+  }
+}
+
+/* DashboardPage's chat-style composer: centered hero on first load,
+   sliding to the top once a scan starts (see DashboardPage.tsx). The
+   "slide" is just `min-height` shrinking while `align-items: center`
+   never changes - as free space disappears, centering itself carries the
+   bar upward, so no transform/keyframe animation is needed. */
+.composer-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 55vh;
+  transition: min-height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.composer-shell.composer-docked {
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .composer-shell {
+    transition: none;
+  }
+}
+
+/* Shared "pill bar" shell - the same visual language used by the composer
+   (WorkflowForm) is reused wherever the result page needs a bar-shaped
+   input/action row (ApprovalBar), rather than inventing a second look. */
+.pill-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #fff;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1.75rem;
+  box-shadow: var(--bs-box-shadow-sm);
+}
+
+.pill-bar:focus-within {
+  border-color: var(--bs-primary-border-subtle);
+  box-shadow: 0 0 0 0.25rem var(--bs-focus-ring-color);
+}
+
+/* Shared "bare control" - an input/select with its chrome stripped so it
+   reads as plain text sitting inside a .pill-bar, not a boxed form field. */
+.bare-control {
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0.5rem 0;
+}
+
+.composer-bar {
+  width: 100%;
+  max-width: 42rem;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+}
+
+.composer-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--bs-body-color);
+}
+
+.composer-input::placeholder {
+  color: var(--bs-secondary-color);
+}
+
+.composer-divider {
+  flex-shrink: 0;
+  align-self: stretch;
+  width: 1px;
+  margin: 0.4rem 0;
+  background-color: var(--bs-border-color);
+}
+
+.composer-branch-select,
+.composer-branch-input {
+  flex-shrink: 0;
+  width: 6rem;
+  font-size: var(--font-size-sm);
+  color: var(--bs-secondary-color);
+}
+
+.composer-submit {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+  color: #fff;
+  transition: background-color 0.15s ease-in-out, opacity 0.15s ease-in-out;
+}
+
+.composer-submit:hover:not(:disabled) {
+  background-color: #1a3a91;
+}
+
+.composer-submit:disabled {
+  opacity: 0.5;
+}
+
+.composer-submit:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+
+/* Results page: same pill shell, adapted for a labeled selection/action
+   row (ApprovalBar) instead of a text composer. */
+.action-bar {
+  padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+}
+
+.action-bar-select {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  color: var(--bs-secondary-color);
+}
+
+/* Plain list rows (AgentExecutionCard, PullRequestResultCard) - replaces a
+   .card-in-a-card per item with a single hairline-divided list, matching
+   the composer's minimal, borderless-until-needed aesthetic. */
+.list-row {
+  padding: 0.75rem 0;
+}
+
+.list-row + .list-row {
+  border-top: 1px solid var(--bs-border-color);
+}
+
+/* WorkflowStatusCard's key-facts strip, replacing a Bootstrap dt/dd <dl>
+   grid with a plain label-over-value layout. */
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.meta-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bs-secondary-color);
+}
+
+.meta-value {
+  font-size: var(--font-size-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* AgentExecutionCard's expandable reasoning-trace disclosure - each
+   paragraph the model's thinking-mode output naturally breaks into
+   (splitReasoningIntoSteps) becomes one timeline step: a dot marking the
+   step, a connecting line down to the next one. Un-styled <ol> otherwise
+   (no default list markers/padding) so the dot is the only marker. */
+.reasoning-timeline {
+  list-style: none;
+  padding-left: 1.125rem;
+  margin: 0;
+}
+
+.reasoning-timeline-step {
+  position: relative;
+  padding-bottom: 0.75rem;
+  white-space: pre-wrap;
+}
+
+.reasoning-timeline-step:last-child {
+  padding-bottom: 0;
+}
+
+.reasoning-timeline-step::before {
+  content: "";
+  position: absolute;
+  left: -1.125rem;
+  top: 0.3em;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+}
+
+.reasoning-timeline-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: -0.9rem;
+  top: 0.85em;
+  bottom: -0.15rem;
+  width: 1px;
+  background-color: var(--bs-border-color);
+}
+
+/* FindingsSummary's total-count figure - the one place in Findings that's
+   deliberately larger than body text, using the type scale's top step
+   instead of Bootstrap's unrelated .fs-5 utility. */
+.findings-summary-total {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+/* FindingsPanel's per-agent sections - same micro-heading treatment as
+   .meta-label (size/weight/letter-spacing/color) used site-wide for
+   section labels (WorkflowStatusCard's key-facts, AgentExecutionCard's
+   footer), minus the uppercase transform - the agent name here is already
+   properly cased by humanizeAgentLabel ("Technical Seo"), so uppercasing
+   it again would fight that instead of matching the rest of the site. */
+.finding-group + .finding-group {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.finding-group-heading {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  color: var(--bs-secondary-color);
+}
+
+/* FindingCard's accordion body - Evidence/Recommendation as a label-above-
+   value pair (reusing .meta-item/.meta-label, minus .meta-value's
+   single-line truncation, which doesn't fit prose-length text) instead of
+   inline "<strong>Evidence:</strong> ..." runs. */
+.finding-detail-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .finding-detail-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* DashboardPage's results-page process guide (WorkflowSteps): "Search ->
+   Approve -> Generate Pull Request". Horizontal counterpart to
+   .reasoning-timeline's dot-and-connector language above - a marker per
+   step, joined by a line, so the two "step" idioms in the app read as one
+   visual family instead of two unrelated ones. */
+.workflow-steps {
+  width: 100%;
+  max-width: 30rem;
+  gap: 0;
+}
+
+.workflow-step {
+  position: relative;
+  flex: 1 1 0;
+  text-align: center;
+}
+
+.workflow-step-marker {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 2px solid var(--bs-border-color);
+  color: var(--bs-secondary-color);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.workflow-step-label {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: var(--font-size-sm);
+  color: var(--bs-secondary-color);
+}
+
+.workflow-step.is-current .workflow-step-marker {
+  border-color: var(--bs-primary);
+  color: var(--bs-primary);
+}
+
+.workflow-step.is-done .workflow-step-marker {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  color: #fff;
+}
+
+.workflow-step.is-current .workflow-step-label,
+.workflow-step.is-done .workflow-step-label {
+  color: var(--bs-body-color);
+  font-weight: var(--font-weight-medium);
+}
+
+.workflow-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 0.85rem;
+  left: calc(50% + 1.25rem);
+  right: calc(-50% + 1.25rem);
+  height: 2px;
+  background-color: var(--bs-border-color);
+}
+
+.workflow-step.is-done:not(:last-child)::after {
+  background-color: var(--bs-primary);
+}

@@ -1,0 +1,35 @@
+# Golden eval dataset for the SEO analysis pipeline - see
+# docs/agent-architecture.md and app/domain/policies/eval_scoring.py.
+#
+# Both cases below point at GitHub's own official, essentially-frozen demo
+# repositories (used in GitHub's own fork/clone documentation for over a
+# decade), and their expected findings/capabilities were verified against
+# the real fetched file content, not assumed:
+#
+# - octocat/Spoon-Knife's index.html (verified via raw.githubusercontent.com)
+#   has a <head> with no <meta name="description"> tag, and an <html> tag
+#   with no lang attribute - real, checkable metadata and accessibility
+#   gaps.
+# - octocat/Hello-World has only a README file - no robots.txt, sitemap, or
+#   any crawlability-relevant file - so a correct technical_seo run should
+#   report zero findings rather than hallucinating one. This case checks
+#   for false positives, not just recall.
+cases:
+  - id: spoon-knife-missing-metadata-and-lang
+    repository_url: https://github.com/octocat/Spoon-Knife
+    goal: Audit metadata and accessibility for this static page.
+    expected_capabilities:
+      - metadata
+      - accessibility
+    expected_findings:
+      - category: metadata
+        keyword: description
+      - category: accessibility
+        keyword: lang
+
+  - id: hello-world-no-false-positives
+    repository_url: https://github.com/octocat/Hello-World
+    goal: Check crawlability for this minimal repository.
+    expected_capabilities:
+      - technical_seo
+    expected_findings: []
