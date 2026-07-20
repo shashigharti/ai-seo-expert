@@ -12,6 +12,12 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    # Docker's default seccomp profile returns EPERM for a syscall Postgres'
+    # initdb needs on this deployment target's kernel (CentOS 7 / 3.10),
+    # breaking bootstrap entirely - see docs/deployment.md §7.7. Scoped to
+    # just this service rather than disabling seccomp for the whole stack.
+    security_opt:
+      - seccomp:unconfined
     environment:
       POSTGRES_DB: aiseo
       POSTGRES_USER: aiseo
